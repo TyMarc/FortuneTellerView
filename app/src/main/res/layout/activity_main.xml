@@ -6,11 +6,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <com.mahinse.fortunetellerview.FortuneTellerView
+        android:id="@+id/fortune_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:ftv_text_size="20sp"
         app:ftv_top_choice="Option 1"
-        app:ftv_top_choice_image="@drawable/option"
         app:ftv_left_choice="Option 2"
         app:ftv_left_choice_image="@drawable/option"
         app:ftv_right_choice="Option 3"

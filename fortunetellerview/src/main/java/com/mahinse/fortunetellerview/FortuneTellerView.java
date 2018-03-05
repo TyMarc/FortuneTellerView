@@ -1,6 +1,5 @@
 package com.mahinse.fortunetellerview;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -28,7 +27,7 @@ public class FortuneTellerView extends View implements PullListener {
     private static final String TAG = "FortuneTellerView";
 
     private static final int DRAWABLE_SIZE = 50;
-    private static final int TEXT_PADDING = 5;
+    private static final int TEXT_PADDING = 0;
 
     private static final int DESIRED_WIDTH = ViewGroup.LayoutParams.MATCH_PARENT;
     private static final int DESIRED_HEIGHT = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -86,6 +85,7 @@ public class FortuneTellerView extends View implements PullListener {
     private FortuneTellerListener fortuneTellerListener;
 
     private GestureDetector gestureDetector;
+    private SwitchAnimation switchAnimation;
 
     public FortuneTellerView(Context context) {
         super(context);
@@ -147,6 +147,9 @@ public class FortuneTellerView extends View implements PullListener {
         leftValueAnimator = new PullAnimator(this, Direction.LEFT);
         rightValueAnimator = new PullAnimator(this, Direction.RIGHT);
         bottomValueAnimator = new PullAnimator(this, Direction.DOWN);
+
+        switchAnimation = new SwitchAnimation(this);
+
         gestureDetector = new GestureDetector(getContext(), swipeGestureListener);
     }
 
@@ -174,10 +177,14 @@ public class FortuneTellerView extends View implements PullListener {
             choiceRight = typedArray.getString(R.styleable.FortuneTellerView_ftv_right_choice);
             choiceBottom = typedArray.getString(R.styleable.FortuneTellerView_ftv_bottom_choice);
 
-            choiceImageTop = getResources().getDrawable(typedArray.getResourceId(R.styleable.FortuneTellerView_ftv_top_choice_image, 0));
-            choiceImageLeft = getResources().getDrawable(typedArray.getResourceId(R.styleable.FortuneTellerView_ftv_left_choice_image, 0));
-            choiceImageRight = getResources().getDrawable(typedArray.getResourceId(R.styleable.FortuneTellerView_ftv_right_choice_image, 0));
-            choiceImageBottom = getResources().getDrawable(typedArray.getResourceId(R.styleable.FortuneTellerView_ftv_bottom_choice_image, 0));
+            int topRes = typedArray.getResourceId(R.styleable.FortuneTellerView_ftv_top_choice_image, 0);
+            int leftRes = typedArray.getResourceId(R.styleable.FortuneTellerView_ftv_left_choice_image, 0);
+            int rightRes = typedArray.getResourceId(R.styleable.FortuneTellerView_ftv_right_choice_image, 0);
+            int bottomRes = typedArray.getResourceId(R.styleable.FortuneTellerView_ftv_bottom_choice_image, 0);
+            choiceImageTop = topRes != 0 ? getResources().getDrawable(topRes) : null;
+            choiceImageLeft = leftRes != 0 ? getResources().getDrawable(leftRes) : null;
+            choiceImageRight = rightRes != 0 ? getResources().getDrawable(rightRes) : null;
+            choiceImageBottom = bottomRes != 0 ? getResources().getDrawable(bottomRes) : null;
             typedArray.recycle();
         } else {
             topColor = DEFAULT_TOP_COLOR;
@@ -188,20 +195,52 @@ public class FortuneTellerView extends View implements PullListener {
         }
     }
 
-    public void setChoices(final String top, final String left, final String right, final String bottom) {
+    public void setChoices(final String left, final String top, final String right, final String bottom) {
         Log.d(TAG, "setChoices");
-        this.choiceTop = top;
-        this.choiceLeft = left;
-        this.choiceRight = right;
-        this.choiceBottom = bottom;
+        if(choiceTop == null) {
+            choiceTop = top;
+            choiceLeft = left;
+            choiceRight = right;
+            choiceBottom = bottom;
+        } else {
+            switchAnimation.startAnimation(new SwitchListener() {
+                @Override
+                public void onChangeChoices() {
+                    choiceTop = top;
+                    choiceLeft = left;
+                    choiceRight = right;
+                    choiceBottom = bottom;
+                }
+            });
+        }
     }
 
-    public void setChoiceImages(final int top, final int left, final int right, final int bottom) {
-        Log.d(TAG, "setChoiceImages");
-        this.choiceImageTop = top != 0 ? getResources().getDrawable(top) : null;
-        this.choiceImageLeft = left != 0 ? getResources().getDrawable(left) : null;
-        this.choiceImageRight = right != 0 ? getResources().getDrawable(right) : null;
-        this.choiceImageBottom = bottom != 0 ? getResources().getDrawable(bottom) : null;
+    public void setChoices(final String leftText, final int leftResId, final String topText, final int topResId, final String rightText, final int rightResId, final String bottomText, final int bottomResId) {
+        Log.d(TAG, "setChoices");
+        if(choiceTop == null) {
+            choiceTop = topText;
+            choiceLeft = leftText;
+            choiceRight = rightText;
+            choiceBottom = bottomText;
+            choiceImageTop = topResId != 0 ? getResources().getDrawable(topResId) : null;
+            choiceImageLeft = leftResId != 0 ? getResources().getDrawable(leftResId) : null;
+            choiceImageRight = rightResId != 0 ? getResources().getDrawable(rightResId) : null;
+            choiceImageBottom = bottomResId != 0 ? getResources().getDrawable(bottomResId) : null;
+        } else {
+            switchAnimation.startAnimation(new SwitchListener() {
+                @Override
+                public void onChangeChoices() {
+                    choiceTop = topText;
+                    choiceLeft = leftText;
+                    choiceRight = rightText;
+                    choiceBottom = bottomText;
+                    choiceImageTop = topResId != 0 ? getResources().getDrawable(topResId) : null;
+                    choiceImageLeft = leftResId != 0 ? getResources().getDrawable(leftResId) : null;
+                    choiceImageRight = rightResId != 0 ? getResources().getDrawable(rightResId) : null;
+                    choiceImageBottom = bottomResId != 0 ? getResources().getDrawable(bottomResId) : null;
+                }
+            });
+        }
     }
 
     public void setTextColor(int textColor) {
@@ -215,7 +254,7 @@ public class FortuneTellerView extends View implements PullListener {
         paintText.setTextSize(textSize);
     }
 
-    public void setBackgroundColors(final int top, final int left, final int right, final int bottom) {
+    public void setBackgroundColors(final int left, final int top, final int right, final int bottom) {
         Log.d(TAG, "setBackgroundColors");
         this.topColor = top;
         this.leftColor = left;
@@ -236,13 +275,13 @@ public class FortuneTellerView extends View implements PullListener {
             rightPullValue = 1f;
             bottomPullValue = 1f;
 
-            if(direction == Direction.UP) {
+            if(direction == Direction.UP && !TextUtils.isEmpty(choiceTop)) {
                 bottomValueAnimator.startPullAnimation();
-            } else if(direction == Direction.LEFT) {
+            } else if(direction == Direction.LEFT && !TextUtils.isEmpty(choiceRight)) {
                 rightValueAnimator.startPullAnimation();
-            } else if(direction == Direction.RIGHT) {
+            } else if(direction == Direction.RIGHT && !TextUtils.isEmpty(choiceLeft)) {
                 leftValueAnimator.startPullAnimation();
-            } else if(direction == Direction.DOWN) {
+            } else if(direction == Direction.DOWN && !TextUtils.isEmpty(choiceBottom)) {
                 topValueAnimator.startPullAnimation();
             }
             return false;
@@ -252,8 +291,8 @@ public class FortuneTellerView extends View implements PullListener {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         Log.d(TAG, "onMeasure");
-
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
@@ -366,17 +405,23 @@ public class FortuneTellerView extends View implements PullListener {
         path.computeBounds(bounds, false);
         center.set((bounds.left + bounds.right) / 2, (bounds.top + bounds.bottom) / 2);
 
-        int left = (int) (center.x - ((pullValue * drawableSize) / 2));
-        int top = (int) (center.y - (pullValue * drawableSize));
-        int right = (int) (center.x + ((pullValue * drawableSize) / 2));
-        int bottom = (int) (top + (pullValue * drawableSize));
+        paintText.setColor(Color.WHITE);
+        paintText.setTextSize(textSize * pullValue);
+        float drawableCurrentSize = pullValue * drawableSize;
+        float textCurrentPadding = pullValue * textPadding;
+        float textHeight = paintText.descent() - paintText.ascent();
+        float textWidth = paintText.measureText(text);
+
+        float totalSize = drawableCurrentSize + textCurrentPadding + textHeight;
+
+        int left = (int) (center.x - (drawableCurrentSize / 2));
+        int top = (int) (center.y - (totalSize / 2));
+        int right = (int) (center.x + (drawableCurrentSize / 2));
+        int bottom = (int) (top + drawableCurrentSize);
         drawable.setBounds(left, top, right, bottom);
         drawable.draw(canvas);
 
-        paintText.setTextSize(textSize * pullValue);
-        float textHeight = paintText.ascent() - paintText.descent();
-        float textWidth = paintText.measureText(text);
-        canvas.drawText(text, center.x  - (textWidth / 2), center.y - (textHeight/ 2) + textPadding, paintText);
+        canvas.drawText(text, center.x  - (textWidth / 2), center.y + (totalSize / 2), paintText);
     }
 
     @Override
