@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="FortuneTellerView">
+        <attr name="ftv_top_color" format="reference|color"/>
+        <attr name="ftv_left_color" format="reference|color"/>
+        <attr name="ftv_right_color" format="reference|color"/>
+        <attr name="ftv_bottom_color" format="reference|color"/>
+        <attr name="ftv_text_color" format="reference|color"/>
+        <attr name="ftv_text_size" format="reference|dimension"/>
+
+        <attr name="ftv_top_choice" format="reference|string" />
+        <attr name="ftv_left_choice" format="reference|string" />
+        <attr name="ftv_right_choice" format="reference|string" />
+        <attr name="ftv_bottom_choice" format="reference|string" />
+
+        <attr name="ftv_top_choice_image" format="reference" />
+        <attr name="ftv_left_choice_image" format="reference" />
+        <attr name="ftv_right_choice_image" format="reference" />
+        <attr name="ftv_bottom_choice_image" format="reference" />
+    </declare-styleable>
+</resources>
